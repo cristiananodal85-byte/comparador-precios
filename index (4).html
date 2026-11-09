@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Dónde sale más barato? Comparador de supermercados</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--ink:#2B1608;--soft:#7A5A44;--line:#F4A56B;--tag:#FFE4CF;--or:#E8590C;--od:#C2410C;--card:#FFF9F4;--r:8px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Bricolage Grotesque",system-ui,sans-serif}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{padding:48px 0 24px}
+h1{font-weight:800;font-size:clamp(2rem,6vw,3.6rem);line-height:1.02;letter-spacing:-.02em;margin:0 0 12px;max-width:16ch}
+.sub{color:var(--soft);margin:0 0 24px;max-width:56ch}
+.search{display:flex;flex-wrap:wrap;gap:10px}
+.search input,.search select{font:inherit;padding:14px 16px;border:2px solid var(--line);border-radius:var(--r);background:#fff;color:var(--ink)}
+.search input{flex:1 1 260px;font-size:1.1rem}
+.search select{flex:0 1 220px}
+.rank{margin:24px 0 8px;border:2px solid var(--line);border-radius:var(--r);background:var(--card)}
+.rank summary{cursor:pointer;list-style:none;padding:12px 16px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.rank summary::-webkit-details-marker{display:none}
+.rank summary::after{content:"";width:10px;height:10px;border-right:3px solid var(--or);border-bottom:3px solid var(--or);transform:rotate(45deg);transition:transform .2s}
+.rank[open] summary::after{transform:rotate(-135deg)}
+#rb{display:grid;gap:8px;padding:0 16px 16px}
+.search .all{font:inherit;font-weight:600;background:var(--od);color:#fff;border:0;border-radius:var(--r);padding:14px 18px;cursor:pointer}
+.bar{display:grid;grid-template-columns:110px 1fr 90px;align-items:center;gap:10px;font-size:.95rem}
+.bar i{display:block;height:14px;border-radius:7px;background:#F9B887}
+.bar.top i{background:var(--or)}
+.bar span:last-child{color:var(--soft);text-align:right}
+.count{margin:20px 0 12px;color:var(--soft)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;padding-bottom:90px}
+.item{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:14px}
+.item h3{font-size:1rem;font-weight:600;margin:0}
+.item p{margin:2px 0 10px;color:var(--soft);font-size:.88rem}
+.row{display:flex;justify-content:space-between;padding:5px 8px;border-radius:5px;font-variant-numeric:tabular-nums}
+.row.min{background:var(--tag);font-weight:800;box-shadow:inset 4px 0 0 var(--or)}
+.row.min em{font-style:normal;font-weight:600;font-size:.8rem;margin-left:6px}
+.row.na{color:#9AABBA}
+.gap{margin-top:8px;font-size:.85rem;color:var(--soft)}
+footer{padding:0 0 100px;color:var(--soft);font-size:.9rem}
+#fab{position:fixed;right:18px;bottom:18px;z-index:5;background:var(--od);color:#fff;border:0;border-radius:999px;padding:14px 20px;font:600 1rem "Bricolage Grotesque",system-ui,sans-serif;cursor:pointer;box-shadow:0 6px 18px rgba(194,65,12,.35)}
+#chat{position:fixed;right:18px;bottom:18px;z-index:6;width:min(360px,calc(100vw - 24px));height:min(520px,calc(100vh - 36px));background:#fff;border:2px solid var(--line);border-radius:12px;display:none;flex-direction:column;overflow:hidden}
+#chat.on{display:flex}
+.ch{background:var(--od);color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.ch button{background:none;border:0;color:#fff;font-size:1.3rem;cursor:pointer}
+#msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.m{max-width:88%;padding:9px 12px;border-radius:12px;white-space:pre-line;font-size:.95rem}
+.m.b{background:#FFF1E6;align-self:flex-start}
+.m.u{background:var(--tag);align-self:flex-end;font-weight:600}
+.qs{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 8px}
+.qs button{font:inherit;font-size:.85rem;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:4px 10px;cursor:pointer}
+.in{display:flex;gap:6px;padding:10px;border-top:2px solid var(--line)}
+.in input{flex:1;font:inherit;padding:10px;border:2px solid var(--line);border-radius:var(--r)}
+.in button{font:inherit;font-weight:600;background:var(--od);color:#fff;border:0;border-radius:var(--r);padding:0 14px;cursor:pointer}
+@media(max-width:520px){.bar{grid-template-columns:90px 1fr 70px}}
+#sp{position:fixed;inset:0;z-index:20;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .6s;cursor:pointer}
+#sp.out{opacity:0;pointer-events:none}
+#sp svg{width:min(280px,62vw);overflow:visible;animation:arrive 1.25s cubic-bezier(.1,.7,.2,1) both}
+@keyframes arrive{0%{transform:translateX(-110vw) skewX(-14deg)}70%{transform:translateX(14px) skewX(-4deg)}85%{transform:translateX(-6px) skewX(1deg)}100%{transform:none}}
+.w{transform-box:fill-box;transform-origin:center;animation:spin .22s linear 6}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sl{animation:sl 1.25s both}
+@keyframes sl{0%,55%{opacity:1}100%{opacity:0}}
+#sp h2{font-size:clamp(1.6rem,6vw,2.5rem);font-weight:800;color:var(--od);margin:0;letter-spacing:-.01em;opacity:0;animation:in .5s 1.15s forwards}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){#sp svg,.w,.sl{animation:none}#sp h2{animation:none;opacity:1}}
+</style>
+</head>
+<body>
+<div id="sp" role="img" aria-label="Comparador de precios">
+<svg viewBox="0 0 220 150" aria-hidden="true">
+<g class="sl" stroke="#F9B887" stroke-width="5" stroke-linecap="round"><path d="M-70 50h40M-90 78h60M-60 104h30"/></g>
+<path d="M8 20h30l20 76h104" fill="none" stroke="#C2410C" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="68" y="14" width="22" height="30" rx="4" fill="#FFB703"/><rect x="96" y="22" width="18" height="22" rx="4" fill="#C2410C"/><circle cx="136" cy="32" r="13" fill="#FF8A3D"/>
+<path d="M46 40h142l-20 58H62z" fill="#E8590C"/>
+<path d="M78 40l6 58M110 40v58M142 40l-6 58M52 66h128" stroke="#fff" stroke-width="3" opacity=".7"/>
+<g class="w"><circle cx="78" cy="120" r="12" fill="#2B1608"/><path d="M78 110v20M68 120h20" stroke="#fff" stroke-width="3"/></g>
+<g class="w"><circle cx="152" cy="120" r="12" fill="#2B1608"/><path d="M152 110v20M142 120h20" stroke="#fff" stroke-width="3"/></g>
+</svg>
+<h2>Comparador de precios</h2>
+</div>
+<div class="wrap">
+<header>
+<h1>¿Dónde sale más barato el súper?</h1>
+<p class="sub">Comparamos 100 productos de la canasta entre Ta-Ta, Disco, Devoto y Tienda Inglesa. Buscá lo que vas a comprar y mirá dónde conviene.</p>
+<div class="search">
+<input id="q" type="search" placeholder="Buscá un producto: arroz, yerba, aceite…" aria-label="Buscar producto">
+<select id="t" aria-label="Filtrar por tipo"><option value="">Todos los tipos</option></select>
+<button id="all" class="all" type="button"></button>
+<select id="s" aria-label="Ordenar"><option value="az">Orden A–Z</option><option value="gap">Mayor diferencia entre cadenas</option><option value="min">Precio más bajo primero</option></select>
+</div>
+</header>
+<details class="rank"><summary>Cuántas veces es la más barata cada cadena</summary><div id="rb"></div></details>
+<p class="count" id="count"></p>
+<main class="grid" id="grid"></main>
+<footer id="foot"></footer>
+</div>
+
+<button id="fab" aria-label="Abrir asistente">Preguntale al asistente</button>
+<section id="chat" aria-label="Asistente de precios">
+<div class="ch"><span>Asistente de precios</span><button id="x" aria-label="Cerrar">×</button></div>
+<div id="msgs"></div>
+<div class="qs" id="qs"></div>
+<form class="in" id="f"><input id="ci" placeholder="Escribí un producto…" aria-label="Mensaje"><button>Enviar</button></form>
+</section>
+
+<script>
+const CH=[["Ta_Ta","Ta-Ta"],["Disco","Disco"],["Devoto","Devoto"],["Tienda_Inglesa","Tienda Inglesa"]];
+let D=[],periodo="",showAll=false;
+const $=id=>document.getElementById(id);
+const fmt=n=>"$ "+n.toLocaleString("es-UY",{maximumFractionDigits:2});
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+function parseCSV(t){const rows=[];let r=[],f="",q=false;
+for(let i=0;i<t.length;i++){const c=t[i];
+if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}
+else if(c=='"')q=true;else if(c==","){r.push(f);f=""}
+else if(c=="\n"){r.push(f);rows.push(r);r=[];f=""}else if(c!="\r")f+=c}
+if(f||r.length){r.push(f);rows.push(r)}return rows}
+
+function prep(p){
+  p.prices=CH.map(([k,n])=>({n,v:parseFloat(p[k])})).filter(x=>!isNaN(x.v));
+  if(p.prices.length){p.min=Math.min(...p.prices.map(x=>x.v));p.max=Math.max(...p.prices.map(x=>x.v));
+    p.best=p.prices.filter(x=>x.v===p.min).map(x=>x.n);p.gap=p.prices.length>1?Math.round((p.max-p.min)/p.min*100):0}
+  p.key=norm(p.Producto+" "+p.Tipo);return p}
+
+async function load(){
+  try{
+    const r=await fetch("precios.csv?v="+Date.now());if(!r.ok)throw 0;
+    const rows=parseCSV((await r.text()).replace(/^\uFEFF/,"")).filter(x=>x.length>3);
+    const h=rows.shift();
+    D=rows.map(x=>Object.fromEntries(h.map((k,i)=>[k.trim(),(x[i]||"").trim()]))).filter(p=>p.Producto).map(prep);
+    periodo=(D.find(p=>p.Periodo)||{}).Periodo||"";
+    init();
+  }catch(e){$("count").textContent="No pude cargar los precios. Abrí la web desde su link de GitHub Pages (no desde el archivo en tu computadora).";}
+}
+
+function init(){
+  [...new Set(D.map(p=>p.Tipo))].sort((a,b)=>a.localeCompare(b,"es")).forEach(t=>{const o=document.createElement("option");o.value=t;o.textContent=t;$("t").append(o)});
+  const w=Object.fromEntries(CH.map(([,n])=>[n,0]));
+  D.filter(p=>p.prices.length>1).forEach(p=>p.best.forEach(n=>w[n]++));
+  const ord=Object.entries(w).sort((a,b)=>b[1]-a[1]),mx=ord[0][1]||1;
+  $("rb").innerHTML=ord.map(([n,c],i)=>`<div class="bar${i?"":" top"}"><span>${n}</span><i style="width:${Math.max(4,c/mx*100)}%"></i><span>${c} productos</span></div>`).join("");
+  $("foot").textContent="Fuente: SIPC, Ministerio de Economía y Finanzas"+(periodo?" · Precios de "+periodo:"")+". Son precios medianos por cadena, no de una sucursal. Si un precio no aparece, la cadena no lo tenía relevado.";
+  ["q","t","s"].forEach(id=>$(id).addEventListener("input",draw));$("all").onclick=()=>{showAll=!showAll;lab();draw()};lab();draw();bot();
+}
+
+function lab(){$("all").textContent=showAll?"Ocultar lista":"Ver los "+D.length+" productos"}
+function draw(){
+  const q=norm($("q").value).split(/\s+/).filter(Boolean),t=$("t").value,s=$("s").value;
+  if(!q.length&&!t&&!showAll){$("grid").innerHTML="";$("count").textContent="Escribí lo que buscás o tocá «Ver los "+D.length+" productos».";return}
+  let L=D.filter(p=>(!t||p.Tipo===t)&&q.every(w=>p.key.includes(w)));
+  L.sort(s=="gap"?(a,b)=>(b.gap||0)-(a.gap||0):s=="min"?(a,b)=>(a.min??1e9)-(b.min??1e9):(a,b)=>a.Producto.localeCompare(b.Producto,"es"));
+  $("count").textContent=L.length+(L.length==1?" producto":" productos");
+  $("grid").innerHTML=L.map(p=>`<article class="item"><h3>${p.Producto}</h3><p>${[p.Marca,p["Especificación"]].filter(Boolean).join(" · ")}</p>`+
+    CH.map(([k,n])=>{const v=parseFloat(p[k]);if(isNaN(v))return`<div class="row na"><span>${n}</span><span>sin dato</span></div>`;
+      const m=v===p.min&&p.prices.length>1;return`<div class="row${m?" min":""}"><span>${n}${m?"<em>más barato</em>":""}</span><span>${fmt(v)}</span></div>`}).join("")+
+    (p.gap?`<div class="gap">Entre la más cara y la más barata hay un ${p.gap}% de diferencia.</div>`:"")+`</article>`).join("")||"<p>No encontré nada con esa búsqueda.</p>";
+}
+
+/* Asistente: reglas simples, sin IA ni Make, corre todo en el navegador */
+function say(t,c){const d=document.createElement("div");d.className="m "+c;d.textContent=t;$("msgs").append(d);$("msgs").scrollTop=1e9}
+function line(p){return p.Producto+": "+fmt(p.min)+" en "+p.best.join(" y ")}
+function answer(raw){
+  const t=norm(raw);
+  if(/(general|cadena|super|mas barat[ao] de todos|conviene)/.test(t)&&!/\d/.test(t)&&t.length<60&&/(cadena|general|super)/.test(t)){
+    const w=Object.fromEntries(CH.map(([,n])=>[n,0]));D.filter(p=>p.prices.length>1).forEach(p=>p.best.forEach(n=>w[n]++));
+    return"Cuántos productos tiene más baratos cada cadena:\n"+Object.entries(w).sort((a,b)=>b[1]-a[1]).map(([n,c])=>n+": "+c).join("\n")}
+  if(/(diferencia|ahorr|brecha)/.test(t))
+    return"Donde más cambia el precio según la cadena:\n"+[...D].filter(p=>p.gap).sort((a,b)=>b.gap-a.gap).slice(0,5).map(p=>p.Producto+" ("+p.gap+"%): conviene "+p.best.join(" o ")).join("\n");
+  const w=t.replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(x=>x.length>2&&!["donde","esta","mas","barato","barata","precio","quiero","cual","como","que","los","las","del","por","con","una","para","comprar","cuesta","sale"].includes(x));
+  if(!w.length)return"Contame qué producto buscás, por ejemplo: arroz, yerba o aceite.";
+  const r=D.filter(p=>p.prices.length&&w.every(x=>p.key.includes(x.replace(/s$/,"")))).sort((a,b)=>a.min-b.min);
+  if(!r.length)return"No encontré ese producto en la canasta. Probá con otra palabra, por ejemplo: arroz, yerba o aceite.";
+  return"Lo más barato que encontré:\n"+r.slice(0,4).map(line).join("\n")+(r.length>4?"\n(y "+(r.length-4)+" más en la lista de arriba)":"")}
+function bot(){
+  say("¡Hola! Te ayudo a ver dónde conviene comprar. Escribí un producto o tocá una opción.","b");
+  [["¿Qué cadena conviene más en general?"],["¿Dónde hay más diferencia de precio?"],["Arroz"],["Yerba"]].forEach(([q])=>{const b=document.createElement("button");b.textContent=q;b.onclick=()=>{say(q,"u");say(answer(q),"b")};$("qs").append(b)});
+}
+$("f").onsubmit=e=>{e.preventDefault();const v=$("ci").value.trim();if(!v)return;say(v,"u");say(answer(v),"b");$("ci").value=""};
+$("fab").onclick=()=>{$("chat").classList.add("on");$("fab").style.display="none";$("ci").focus()};
+$("x").onclick=()=>{$("chat").classList.remove("on");$("fab").style.display=""};
+const sp=$("sp"),hs=()=>{sp.classList.add("out");setTimeout(()=>sp.remove(),600)};
+sp.onclick=hs;setTimeout(hs,matchMedia("(prefers-reduced-motion:reduce)").matches?900:3000);
+load();
+</script>
+</body>
+</html>
