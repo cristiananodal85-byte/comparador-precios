@@ -144,7 +144,9 @@ const fmt=n=>"$ "+n.toLocaleString("es-UY",{maximumFractionDigits:2});
 const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const IMG={"Arroz blanco":"arroz","Gaseosa tipo cola (env. no ret.)":"gaseosa-cola","Harina trigo común 0000":"harina-trigo","Harina de maíz":"harina-maiz","Aceite de girasol":"aceite","Aceite de maíz":"aceite","Aceite de soja":"aceite","Agua de mesa con gas":"agua-con-gas","Agua de mesa sin gas":"agua-sin-gas","Agua mineral sin gas(bidón)":"agua-bidon","Cerveza":"cerveza","Vino tinto común tetrabrick":"vino-tinto","Yogur":"yogur","Dulce de leche":"dulce-de-leche","Fideos secos al huevo":"fideos-huevo","Fideos secos semolados":"fideos-semolados","Huevos colorados":"huevos","Pan de molde lacteado":"pan-de-molde","Pulpa de tomate":"pulpa-de-tomate","Té negro en saquitos":"te-saquitos","Yerba mate común":"yerba-mate","Azúcar blanco":"azucar","Café envasado (no instantáneo)":"cafe","Cocoa":"cocoa","Sal fina yodada fluorada":"sal","Mayonesa común":"mayonesa","Mermelada de durazno":"mermelada-durazno","Manteca":"manteca","Margarina":"margarina","Queso rallado":"queso-rallado","Helado familiar":"helado","Arvejas en conserva":"arvejas","Dulce de membrillo":"dulce-de-membrillo","Carne picada vacuna":"carne-picada","Aguja vacuna":"corte-vacuno","Nalga vacuna":"corte-vacuno","Paleta vacuna":"corte-vacuno","Peceto vacuno":"corte-vacuno","Chorizos mezcla sueltos":"chorizos","Frankfurters cortos":"frankfurters","Hamburguesas carne vacun":"hamburguesas","Pollo entero fresco con menudos":"pollo","Jamón cocido no artesanal":"jamon-cocido","Leonesa":"leonesa","Galletitas al agua":"galletitas-agua","Lechuga":"lechuga","Manzana":"manzana","Papa":"papa","Tomate":"tomate"};
 const IMGN=Object.fromEntries(Object.entries(IMG).map(([k,v])=>[norm(k),v]));
-const imgSrc=p=>"img/"+(IMGN[norm(p.Tipo)]||"default")+".png";
+const imgName=p=>IMGN[norm(p.Tipo)]||"default";
+const imgSrc=p=>imgName(p)+".png";
+function imgFail(e){const n=(+e.dataset.t||0)+1;e.dataset.t=n;const f=e.dataset.f;e.src=n==1?"img/"+f+".png":n==2?"default.png":n==3?"img/default.png":(e.onerror=null,"")}
 
 function parseCSV(t){const rows=[];let r=[],f="",q=false;
 for(let i=0;i<t.length;i++){const c=t[i];
@@ -187,7 +189,7 @@ function draw(){
   let L=D.filter(p=>(!t||p.Tipo===t)&&q.every(w=>p.key.includes(w)));
   L.sort(s=="gap"?(a,b)=>(b.gap||0)-(a.gap||0):s=="min"?(a,b)=>(a.min??1e9)-(b.min??1e9):(a,b)=>a.Producto.localeCompare(b.Producto,"es"));
   $("count").textContent=L.length+(L.length==1?" producto":" productos");
-  $("grid").innerHTML=L.map(p=>`<article class="item"><img class="pi" src="${imgSrc(p)}" alt="${p.Producto}" loading="lazy" onerror="this.onerror=null;this.src='img/default.png'"><h3>${p.Producto}</h3><p>${[p.Marca,p["Especificación"]].filter(Boolean).join(" · ")}</p>`+
+  $("grid").innerHTML=L.map(p=>`<article class="item"><img class="pi" src="${imgSrc(p)}" data-f="${imgName(p)}" alt="${p.Producto}" loading="lazy" onerror="imgFail(this)"><h3>${p.Producto}</h3><p>${[p.Marca,p["Especificación"]].filter(Boolean).join(" · ")}</p>`+
     CH.map(([k,n])=>{const v=parseFloat(p[k]);if(isNaN(v))return`<div class="row na"><span>${n}</span><span>sin dato</span></div>`;
       const m=v===p.min&&p.prices.length>1;return`<div class="row${m?" min":""}"><span>${n}${m?"<em>más barato</em>":""}</span><span>${fmt(v)}</span></div>`}).join("")+
     (p.gap?`<div class="gap">Entre la más cara y la más barata hay un ${p.gap}% de diferencia.</div>`:"")+`</article>`).join("")||"<p>No encontré nada con esa búsqueda.</p>";
