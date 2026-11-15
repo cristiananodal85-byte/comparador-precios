@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>¿Dónde sale más barato? Comparador de supermercados</title>
+<title>vitrina · ¿Dónde sale más barato el súper?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Archivo+Black&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#fff;--ink:#2B1608;--soft:#7A5A44;--line:#F4A56B;--tag:#FFE4CF;--or:#E8590C;--od:#C2410C;--card:#FFF9F4;--gr:#15803D;--gl:#DCFCE7;--r:8px}
 *{box-sizing:border-box}
@@ -15,6 +15,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Bricolage
 .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
 .band{background:var(--od);color:#fff;padding:40px 0 28px;border-bottom:6px solid var(--gr)}
 .band .sub{color:#FFE8D6}
+.brand{display:inline-block;font-family:"Archivo Black","Arial Black","Helvetica Neue",sans-serif;font-weight:400;font-size:clamp(2.4rem,8vw,3.6rem);letter-spacing:-.075em;padding-right:.075em;line-height:.85;margin-bottom:20px}
+.brand::after{content:"";display:block;height:7px;margin-top:10px;border-radius:3px;background:repeating-linear-gradient(90deg,#fff 0 16px,#4ADE80 16px 32px)}
 .band .search input,.band .search select{border-color:#fff}
 h1{font-weight:800;font-size:clamp(2rem,6vw,3.6rem);line-height:1.02;letter-spacing:-.02em;margin:0 0 12px;max-width:16ch}
 .sub{color:var(--soft);margin:0 0 24px;max-width:56ch}
@@ -48,6 +50,7 @@ footer{padding:0 0 100px;color:var(--soft);font-size:.9rem}
 #chat{position:fixed;right:18px;bottom:18px;z-index:6;width:min(360px,calc(100vw - 24px));height:min(520px,calc(100vh - 36px));background:#fff;border:2px solid var(--line);border-radius:12px;display:none;flex-direction:column;overflow:hidden}
 #chat.on{display:flex}
 .ch{background:var(--gr);color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.bw{font-family:"Archivo Black","Arial Black",sans-serif;font-weight:400;font-size:1.3rem;letter-spacing:-.06em;margin-right:8px}
 .ch button{background:none;border:0;color:#fff;font-size:1.3rem;cursor:pointer}
 #msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
 .m{max-width:88%;padding:9px 12px;border-radius:12px;white-space:pre-line;font-size:.95rem}
@@ -78,11 +81,15 @@ footer{padding:0 0 100px;color:var(--soft);font-size:.9rem}
 @keyframes sl{0%,55%{opacity:1}100%{opacity:0}}
 .late{opacity:0;animation:in .5s 1.15s forwards}
 @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-#sp h2{font-size:clamp(1.6rem,6vw,2.5rem);font-weight:800;color:var(--od);margin:0;letter-spacing:-.01em}
+#sp h2{font-family:"Archivo Black","Arial Black","Helvetica Neue",sans-serif;font-size:clamp(3.6rem,17vw,7rem);font-weight:400;color:var(--od);margin:0;letter-spacing:-.075em;padding-right:.075em;line-height:.85}
+#sp h2::after{content:"";display:block;height:10px;margin-top:14px;border-radius:4px;background:repeating-linear-gradient(90deg,var(--or) 0 22px,var(--gr) 22px 44px)}
+#sp .tag{margin:0;color:var(--gr);font-weight:600;font-size:1.1rem;letter-spacing:.04em}
 #hint{margin:0;color:var(--soft);font-weight:600}
 .meter{width:min(260px,70vw);height:12px;border-radius:6px;background:var(--gl);overflow:hidden}
 .meter i{display:block;height:100%;width:0;background:var(--gr);transition:width .25s}
 @media(prefers-reduced-motion:reduce){.stage,.w,.sl,.it{animation:none}.late{animation:none;opacity:1}.stage.go{display:none}}
+.pi{display:block;width:100%;max-width:140px;aspect-ratio:1;margin:0 auto 10px;object-fit:contain;border-radius:var(--r);background:#FFF9F4}
+@media(max-width:520px){.pi{max-width:110px;max-height:110px}}
 </style>
 </head>
 <body>
@@ -98,11 +105,13 @@ footer{padding:0 0 100px;color:var(--soft);font-size:.9rem}
 <g class="w"><circle cx="152" cy="120" r="12" fill="#2B1608"/><path d="M152 110v20M142 120h20" stroke="#fff" stroke-width="3"/></g>
 </svg></button>
 </div>
-<h2 class="late">Comparador de precios</h2>
+<h2 class="late">vitrina</h2>
+<p class="late tag">Comparador de precios</p>
 <p id="hint" class="late">Tocá el carrito para llenarlo (0/6)</p>
 <div class="meter late"><i id="fill"></i></div>
 </div>
 <header class="band"><div class="wrap">
+<div class="brand">vitrina</div>
 <h1>¿Dónde sale más barato el súper?</h1>
 <p class="sub">Comparamos 100 productos de la canasta entre Ta-Ta, Disco, Devoto y Tienda Inglesa. Buscá lo que vas a comprar y mirá dónde conviene.</p>
 <div class="search">
@@ -121,7 +130,7 @@ footer{padding:0 0 100px;color:var(--soft);font-size:.9rem}
 
 <button id="fab" aria-label="Abrir asistente">Preguntale al asistente</button>
 <section id="chat" aria-label="Asistente de precios">
-<div class="ch"><span>Asistente de precios</span><button id="x" aria-label="Cerrar">×</button></div>
+<div class="ch"><span><span class="bw">vitrina</span> asistente</span><button id="x" aria-label="Cerrar">×</button></div>
 <div id="msgs"></div>
 <div class="qs" id="qs"></div>
 <form class="in" id="f"><input id="ci" placeholder="Escribí un producto…" aria-label="Mensaje"><button>Enviar</button></form>
@@ -133,6 +142,9 @@ let D=[],periodo="",showAll=false;
 const $=id=>document.getElementById(id);
 const fmt=n=>"$ "+n.toLocaleString("es-UY",{maximumFractionDigits:2});
 const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const IMG={"Arroz blanco":"arroz","Gaseosa tipo cola (env. no ret.)":"gaseosa-cola","Harina trigo común 0000":"harina-trigo","Harina de maíz":"harina-maiz","Aceite de girasol":"aceite","Aceite de maíz":"aceite","Aceite de soja":"aceite","Agua de mesa con gas":"agua-con-gas","Agua de mesa sin gas":"agua-sin-gas","Agua mineral sin gas(bidón)":"agua-bidon","Cerveza":"cerveza","Vino tinto común tetrabrick":"vino-tinto","Yogur":"yogur","Dulce de leche":"dulce-de-leche","Fideos secos al huevo":"fideos-huevo","Fideos secos semolados":"fideos-semolados","Huevos colorados":"huevos","Pan de molde lacteado":"pan-de-molde","Pulpa de tomate":"pulpa-de-tomate","Té negro en saquitos":"te-saquitos","Yerba mate común":"yerba-mate","Azúcar blanco":"azucar","Café envasado (no instantáneo)":"cafe","Cocoa":"cocoa","Sal fina yodada fluorada":"sal","Mayonesa común":"mayonesa","Mermelada de durazno":"mermelada-durazno","Manteca":"manteca","Margarina":"margarina","Queso rallado":"queso-rallado","Helado familiar":"helado","Arvejas en conserva":"arvejas","Dulce de membrillo":"dulce-de-membrillo","Carne picada vacuna":"carne-picada","Aguja vacuna":"corte-vacuno","Nalga vacuna":"corte-vacuno","Paleta vacuna":"corte-vacuno","Peceto vacuno":"corte-vacuno","Chorizos mezcla sueltos":"chorizos","Frankfurters cortos":"frankfurters","Hamburguesas carne vacun":"hamburguesas","Pollo entero fresco con menudos":"pollo","Jamón cocido no artesanal":"jamon-cocido","Leonesa":"leonesa","Galletitas al agua":"galletitas-agua","Lechuga":"lechuga","Manzana":"manzana","Papa":"papa","Tomate":"tomate"};
+const IMGN=Object.fromEntries(Object.entries(IMG).map(([k,v])=>[norm(k),v]));
+const imgSrc=p=>"img/"+(IMGN[norm(p.Tipo)]||"default")+".png";
 
 function parseCSV(t){const rows=[];let r=[],f="",q=false;
 for(let i=0;i<t.length;i++){const c=t[i];
@@ -175,7 +187,7 @@ function draw(){
   let L=D.filter(p=>(!t||p.Tipo===t)&&q.every(w=>p.key.includes(w)));
   L.sort(s=="gap"?(a,b)=>(b.gap||0)-(a.gap||0):s=="min"?(a,b)=>(a.min??1e9)-(b.min??1e9):(a,b)=>a.Producto.localeCompare(b.Producto,"es"));
   $("count").textContent=L.length+(L.length==1?" producto":" productos");
-  $("grid").innerHTML=L.map(p=>`<article class="item"><h3>${p.Producto}</h3><p>${[p.Marca,p["Especificación"]].filter(Boolean).join(" · ")}</p>`+
+  $("grid").innerHTML=L.map(p=>`<article class="item"><img class="pi" src="${imgSrc(p)}" alt="${p.Producto}" loading="lazy" onerror="this.onerror=null;this.src='img/default.png'"><h3>${p.Producto}</h3><p>${[p.Marca,p["Especificación"]].filter(Boolean).join(" · ")}</p>`+
     CH.map(([k,n])=>{const v=parseFloat(p[k]);if(isNaN(v))return`<div class="row na"><span>${n}</span><span>sin dato</span></div>`;
       const m=v===p.min&&p.prices.length>1;return`<div class="row${m?" min":""}"><span>${n}${m?"<em>más barato</em>":""}</span><span>${fmt(v)}</span></div>`}).join("")+
     (p.gap?`<div class="gap">Entre la más cara y la más barata hay un ${p.gap}% de diferencia.</div>`:"")+`</article>`).join("")||"<p>No encontré nada con esa búsqueda.</p>";
