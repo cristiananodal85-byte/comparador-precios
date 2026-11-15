@@ -90,6 +90,10 @@ footer{padding:0 0 100px;color:var(--soft);font-size:.9rem}
 @media(prefers-reduced-motion:reduce){.stage,.w,.sl,.it{animation:none}.late{animation:none;opacity:1}.stage.go{display:none}}
 .pi{display:block;width:100%;max-width:140px;aspect-ratio:1;margin:0 auto 10px;object-fit:contain;border-radius:var(--r);background:#FFF9F4}
 @media(max-width:520px){.pi{max-width:110px;max-height:110px}}
+.mc{display:flex;gap:10px;align-items:center;align-self:flex-start;max-width:92%;border:2px solid var(--line);border-radius:var(--r);padding:6px 10px 6px 6px;background:#fff}
+.mi{width:46px;height:46px;flex:none;object-fit:contain;border-radius:6px;background:#FFF9F4}
+.mc b{display:block;font-size:.85rem;line-height:1.25}
+.mc span{font-size:.82rem;color:var(--gr);font-weight:600}
 </style>
 </head>
 <body>
@@ -198,23 +202,51 @@ function draw(){
 /* Asistente: reglas simples, sin IA ni Make, corre todo en el navegador */
 function say(t,c){const d=document.createElement("div");d.className="m "+c;d.textContent=t;$("msgs").append(d);$("msgs").scrollTop=1e9}
 function line(p){return p.Producto+": "+fmt(p.min)+" en "+p.best.join(" y ")}
+const STOP=["donde","esta","mas","barato","barata","precio","quiero","cual","como","que","los","las","del","por","con","una","para","comprar","cuesta","sale","unos","unas","compara","comparar","comparame","mostrame","dame","busca","buscar","precios","cuanto","hay","tiene","tenes","vale","valen","valor","salen","cuales","quiero"];
+function findP(txt){const w=norm(txt).replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(x=>x.length>2&&!STOP.includes(x));if(!w.length)return[];return D.filter(p=>p.prices.length&&w.every(x=>p.key.includes(x.replace(/s$/,""))))}
+function basket(items,forced){
+  const F=items.map(t=>({t,m:findP(t)})),ok=F.filter(x=>x.m.length),no=F.filter(x=>!x.m.length).map(x=>x.t);
+  if(!ok.length)return forced?"No encontré esos productos en la canasta. Probá con otros nombres, por ejemplo: arroz, yerba, aceite.":null;
+  const R=CH.map(([,n])=>{let tot=0;const miss=[];ok.forEach(x=>{const v=x.m.flatMap(p=>p.prices.filter(y=>y.n===n).map(y=>y.v));v.length?tot+=Math.min(...v):miss.push(x.t)});return{n,tot,miss}});
+  R.sort((a,b)=>a.miss.length-b.miss.length||a.tot-b.tot);
+  const full=R.filter(r=>!r.miss.length);
+  let out="Canasta: "+ok.map(x=>x.t).join(", ")+"\n(lo más barato de cada producto en cada cadena)\n"+R.map(r=>r.n+": "+fmt(r.tot)+(r.miss.length?" (sin dato de "+r.miss.join(", ")+")":"")).join("\n");
+  if(full.length){const l=full[full.length-1],d=l.tot-full[0].tot;out+="\n\nTe conviene "+full[0].n+": "+fmt(full[0].tot)+(d>0?". Ahorrás "+fmt(d)+" frente a "+l.n+".":".")}
+  else out+="\n\nNinguna cadena tiene todos los productos con precio.";
+  if(no.length)out+="\nNo encontré: "+no.join(", ")+".";
+  return out}
 function answer(raw){
   const t=norm(raw);
+  const PRE=/^\s*(armar|armame|arma|hace|hacer|quiero|necesito)?\s*(una\s+)?canasta\s*(de|con|:)?\s*/i,forced=PRE.test(raw),items=raw.replace(PRE,"").split(/,|;|\n|\s+y\s+/i).map(x=>x.trim()).filter(x=>x.length>1);
+  if(/^(hola|buenas|buen dia|buenos dias|buenas tardes|hey|holi)\b/.test(t))return"¡Hola! Preguntame por un producto (arroz, yerba, aceite), por una cadena (yerba en Disco) o armá una canasta separando los productos con coma.";
+  if(forced&&!items.length)return"¡Dale! Escribime los productos separados por coma, por ejemplo: arroz, yerba, aceite, fideos.";
+  if(forced||items.length>1){const b=basket(items,forced);if(b)return b}
   if(/(general|cadena|super|mas barat[ao] de todos|conviene)/.test(t)&&!/\d/.test(t)&&t.length<60&&/(cadena|general|super)/.test(t)){
     const w=Object.fromEntries(CH.map(([,n])=>[n,0]));D.filter(p=>p.prices.length>1).forEach(p=>p.best.forEach(n=>w[n]++));
     return"Cuántos productos tiene más baratos cada cadena:\n"+Object.entries(w).sort((a,b)=>b[1]-a[1]).map(([n,c])=>n+": "+c).join("\n")}
   if(/(diferencia|ahorr|brecha)/.test(t))
     return"Donde más cambia el precio según la cadena:\n"+[...D].filter(p=>p.gap).sort((a,b)=>b.gap-a.gap).slice(0,5).map(p=>p.Producto+" ("+p.gap+"%): conviene "+p.best.join(" o ")).join("\n");
-  const w=t.replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(x=>x.length>2&&!["donde","esta","mas","barato","barata","precio","quiero","cual","como","que","los","las","del","por","con","una","para","comprar","cuesta","sale"].includes(x));
+  const CHN=[["ta-ta","Ta-Ta"],["ta ta","Ta-Ta"],["tata","Ta-Ta"],["disco","Disco"],["devoto","Devoto"],["tienda inglesa","Tienda Inglesa"],["inglesa","Tienda Inglesa"]];
+  const cn=(CHN.find(([k])=>t.includes(k))||[])[1];
+  let tt=t;if(cn)CHN.forEach(([k])=>{tt=tt.replace(k," ")});
+  const w=tt.replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(x=>x.length>2&&!STOP.includes(x));
   if(!w.length)return"Contame qué producto buscás, por ejemplo: arroz, yerba o aceite.";
   const r=D.filter(p=>p.prices.length&&w.every(x=>p.key.includes(x.replace(/s$/,"")))).sort((a,b)=>a.min-b.min);
   if(!r.length)return"No encontré ese producto en la canasta. Probá con otra palabra, por ejemplo: arroz, yerba o aceite.";
-  return"Lo más barato que encontré:\n"+r.slice(0,4).map(line).join("\n")+(r.length>4?"\n(y "+(r.length-4)+" más en la lista de arriba)":"")}
+  if(cn){const c=r.map(p=>({p,v:(p.prices.find(y=>y.n===cn)||{}).v})).filter(x=>x.v!=null).sort((a,b)=>a.v-b.v);
+    return c.length?"En "+cn+":\n"+c.slice(0,4).map(x=>x.p.Producto+": "+fmt(x.v)).join("\n")+(c.length>4?"\n(y "+(c.length-4)+" más)":""):cn+" no tiene precio de eso en la canasta."}
+  CARDS=r.slice(0,4);
+  return"Esto encontré, de más barato a más caro:"+(r.length>4?"\n(hay "+(r.length-4)+" más en la lista de arriba)":"")}
+let CARDS=[];
+function reply(q){CARDS=[];const a=answer(q);say(a,"b");
+  CARDS.forEach(p=>{const d=document.createElement("div");d.className="mc";const i=document.createElement("img");i.className="mi";i.src=imgSrc(p);i.dataset.f=imgName(p);i.alt="";i.onerror=function(){imgFail(this)};
+    const x=document.createElement("div"),b=document.createElement("b"),sp=document.createElement("span");b.textContent=p.Producto;sp.textContent=(p.prices.length>1?"Más barato: ":"Solo en: ")+p.best.join(" y ")+" · "+fmt(p.min);x.append(b,sp);d.append(i,x);$("msgs").append(d)});
+  $("msgs").scrollTop=1e9}
 function bot(){
-  say("¡Hola! Te ayudo a ver dónde conviene comprar. Escribí un producto o tocá una opción.","b");
-  [["¿Qué cadena conviene más en general?"],["¿Dónde hay más diferencia de precio?"],["Arroz"],["Yerba"]].forEach(([q])=>{const b=document.createElement("button");b.textContent=q;b.onclick=()=>{say(q,"u");say(answer(q),"b")};$("qs").append(b)});
+  say("¡Hola! Te ayudo a ver dónde conviene comprar. Escribí un producto, o varios separados por coma para armar una canasta.","b");
+  [["Armar una canasta"],["¿Qué cadena conviene más en general?"],["¿Dónde hay más diferencia de precio?"],["Arroz"]].forEach(([q])=>{const b=document.createElement("button");b.textContent=q;b.onclick=()=>{say(q,"u");reply(q)};$("qs").append(b)});
 }
-$("f").onsubmit=e=>{e.preventDefault();const v=$("ci").value.trim();if(!v)return;say(v,"u");say(answer(v),"b");$("ci").value=""};
+$("f").onsubmit=e=>{e.preventDefault();const v=$("ci").value.trim();if(!v)return;say(v,"u");reply(v);$("ci").value=""};
 $("fab").onclick=()=>{$("chat").classList.add("on");$("fab").style.display="none";$("ci").focus()};
 $("x").onclick=()=>{$("chat").classList.remove("on");$("fab").style.display=""};
 const sp=$("sp"),st=sp.querySelector(".stage"),cart=$("cart"),E=["🍅","🥖","🥛","🥬","🍎","🧀"],LF=[24,34,44,54,64,73],RT=[-14,10,-6,12,-10,6];
