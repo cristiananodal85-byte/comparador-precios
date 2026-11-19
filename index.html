@@ -238,7 +238,30 @@ function answer(raw){
   CARDS=r.slice(0,4);
   return"Esto encontré, de más barato a más caro:"+(r.length>4?"\n(hay "+(r.length-4)+" más en la lista de arriba)":"")}
 let CARDS=[];
-function reply(q){CARDS=[];const a=answer(q);say(a,"b");
+/* ===== LLM (Gemini, a través de un Worker de Cloudflare) =====
+   Se usa SOLO cuando el asistente no encuentra un producto: el LLM corrige
+   la ortografía / interpreta el mensaje y las reglas de siempre hacen el resto. */
+const LLM_URL="https://vitrina-ia.cristiananodal85.workers.dev";
+async function interpretar(q){
+  if(!LLM_URL.startsWith("https://"))return null;
+  try{
+    const r=await fetch(LLM_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mensaje:q,productos:[...new Set(D.map(p=>p.Producto))]})});
+    if(!r.ok)return null;
+    const j=await r.json();
+    return typeof j.mensaje==="string"&&j.mensaje.trim()?j.mensaje.trim():null;
+  }catch(e){return null}
+}
+async function reply(q){CARDS=[];let a=answer(q);
+  if(a.includes("No encontré")){
+    say("Interpretando tu mensaje…","b");const w=$("msgs").lastChild;
+    const fix=await interpretar(q);w.remove();
+    if(fix&&norm(fix)!==norm(q)){
+      CARDS=[];const a2=answer(fix);
+      if(!a2.startsWith("No encontré")&&(a.startsWith("No encontré")||!a2.includes("No encontré"))){say("Entendí: «"+fix+"»","b");a=a2}
+      else CARDS=[];
+    }else CARDS=[];
+  }
+  say(a,"b");
   CARDS.forEach(p=>{const d=document.createElement("div");d.className="mc";const i=document.createElement("img");i.className="mi";i.src=imgSrc(p);i.dataset.f=imgName(p);i.alt="";i.onerror=function(){imgFail(this)};
     const x=document.createElement("div"),b=document.createElement("b"),sp=document.createElement("span");b.textContent=p.Producto;sp.textContent=(p.prices.length>1?"Más barato: ":"Solo en: ")+p.best.join(" y ")+" · "+fmt(p.min);x.append(b,sp);d.append(i,x);$("msgs").append(d)});
   $("msgs").scrollTop=1e9}
