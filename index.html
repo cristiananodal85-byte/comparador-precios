@@ -239,32 +239,48 @@ function answer(raw){
   return"Esto encontré, de más barato a más caro:"+(r.length>4?"\n(hay "+(r.length-4)+" más en la lista de arriba)":"")}
 let CARDS=[];
 /* ===== LLM (Gemini, a través de un Worker de Cloudflare) =====
-   Se usa SOLO cuando el asistente no encuentra un producto: el LLM corrige
-   la ortografía / interpreta el mensaje y las reglas de siempre hacen el resto. */
+   El LLM entiende errores de ortografía, frases largas, necesidades y preguntas mezcladas;
+   las reglas de siempre calculan los precios con los datos reales. */
 const LLM_URL="https://vitrina-ia.cristiananodal85.workers.dev";
 async function interpretar(q){
   if(!LLM_URL.startsWith("https://"))return null;
   try{
     const r=await fetch(LLM_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mensaje:q,productos:[...new Set(D.map(p=>p.Producto))]})});
     if(!r.ok)return null;
-    const j=await r.json();
-    return typeof j.mensaje==="string"&&j.mensaje.trim()?j.mensaje.trim():null;
+    return await r.json();
   }catch(e){return null}
 }
-async function reply(q){CARDS=[];let a=answer(q);
-  if(a.includes("No encontré")){
-    say("Interpretando tu mensaje…","b");const w=$("msgs").lastChild;
-    const fix=await interpretar(q);w.remove();
-    if(fix&&norm(fix)!==norm(q)){
-      CARDS=[];const a2=answer(fix);
-      if(!a2.startsWith("No encontré")&&(a.startsWith("No encontré")||!a2.includes("No encontré"))){say("Entendí: «"+fix+"»","b");a=a2}
-      else CARDS=[];
-    }else CARDS=[];
-  }
-  say(a,"b");
+function partes(it){
+  const P=[];if(!it||typeof it!=="object")return P;
+  const pr=(Array.isArray(it.productos)?it.productos:[]).map(x=>String(x).trim()).filter(Boolean);
+  const cn=typeof it.cadena==="string"?it.cadena.trim():"";
+  if(pr.length)P.push(pr.length===1&&cn?pr[0]+" en "+cn:pr.join(", "));
+  if(it.pregunta==="general")P.push("¿Qué cadena conviene más en general?");
+  if(it.pregunta==="diferencia")P.push("¿Dónde hay más diferencia de precio?");
+  if(!P.length&&it.saludo===true)P.push("hola");
+  return P}
+function showCards(){
   CARDS.forEach(p=>{const d=document.createElement("div");d.className="mc";const i=document.createElement("img");i.className="mi";i.src=imgSrc(p);i.dataset.f=imgName(p);i.alt="";i.onerror=function(){imgFail(this)};
     const x=document.createElement("div"),b=document.createElement("b"),sp=document.createElement("span");b.textContent=p.Producto;sp.textContent=(p.prices.length>1?"Más barato: ":"Solo en: ")+p.best.join(" y ")+" · "+fmt(p.min);x.append(b,sp);d.append(i,x);$("msgs").append(d)});
-  $("msgs").scrollTop=1e9}
+  CARDS=[];$("msgs").scrollTop=1e9}
+function out(a){say(a,"b");showCards()}
+const FALLA=/^(No encontré|Contame qué)/;
+async function reply(q){
+  CARDS=[];
+  const t=norm(q),words=t.split(/\s+/).filter(Boolean).length,saluda=/^(hola|buenas|buen dia|buenos dias|buenas tardes|hey|holi)\b/.test(t);
+  const a=answer(q),base=CARDS;CARDS=[];
+  /* El LLM interviene si no se encontró algo, o si el mensaje es largo / natural */
+  if(words>=6||(saluda&&words>=3)||a.includes("No encontré")){
+    say("Interpretando tu mensaje…","b");const w=$("msgs").lastChild;
+    const it=await interpretar(q);w.remove();
+    const P=partes(it);
+    const R=P.map(x=>{CARDS=[];const r=answer(x);return{r,c:CARDS}}).filter(o=>!FALLA.test(o.r));
+    CARDS=[];
+    if(R.length){
+      if(!(P.length===1&&P[0]==="hola"))say("Entendí: "+P.map(x=>"«"+x+"»").join(" · "),"b");
+      R.forEach(o=>{CARDS=o.c;out(o.r)});return}
+  }
+  CARDS=base;out(a)}
 function bot(){
   say("¡Hola! Te ayudo a ver dónde conviene comprar. Escribí un producto, o varios separados por coma para armar una canasta.","b");
   [["Armar una canasta"],["¿Qué cadena conviene más en general?"],["¿Dónde hay más diferencia de precio?"],["Arroz"]].forEach(([q])=>{const b=document.createElement("button");b.textContent=q;b.onclick=()=>{say(q,"u");reply(q)};$("qs").append(b)});
